@@ -36,7 +36,7 @@ EDK2_BIOS = $(EDK2_PATH)/usr/share/edk2.git/ovmf-x64/OVMF_CODE-pure-efi.fd
 
 # Finds the URL to download the latest version of edk2.git-ovmf-x64
 EDK2_BASE_URL = https://www.kraxel.org/repos/jenkins/edk2/
-EDK2_FILE_URL = $(shell wget -q $(BASE_URL) -O - | grep -Po 'edk2.git-ovmf-x64[^"]*' | head -1)
+EDK2_FILE_URL = $(shell wget -q $(EDK2_BASE_URL) -O - | grep -Po 'edk2.git-ovmf-x64[^"]*' | head -1)
 
 
 .PHONY: clean qemu all img update_edk2
@@ -59,10 +59,10 @@ clean:
 
 img:
 ifeq (, $(shell which mkfs.vfat))
-	$(error "Can't find mkfs.vfat, consider doing sudo apt install dosfstools")
+	$(error Can't find mkfs.vfat, consider doing sudo apt install dosfstools)
 endif
 ifeq (, $(shell which mcopy))
-	$(error "Can't find mcopy, consider doing sudo apt install mtools")
+	$(error Can't find mcopy, consider doing sudo apt install mtools)
 endif
 	dd if=/dev/zero of=$(BOOT_DRIVE) bs=$(IMG_SIZE) count=1
 	mkfs.vfat $(BOOT_DRIVE)
@@ -71,4 +71,17 @@ endif
 	mcopy -i $(BOOT_DRIVE) $(EFI) ::EFI/BOOT/BOOTX64.EFI
 
 update_edk2:
+ifeq (./sdk/$(EDK2_FILE_URL:%.rpm=%), $(EDK2_PATH))
+	$(error Looks like you've already got the latest version of edk2 in your sdk folder)
+endif
 	wget $(EDK2_BASE_URL)$(EDK2_FILE_URL)
+ifeq (, $(shell which rpm2cpio))
+	$(error Can't find rpm2cpio, consider doing sudo apt install rpm)
+endif
+	rpm2cpio $(EDK2_FILE_URL) | cpio -id
+	mkdir sdk/$(EDK2_FILE_URL:%.rpm=%)
+	mv usr sdk/$(EDK2_FILE_URL:%.rpm=%)
+ifneq (, $(EDK2_PATH))
+	rm -r $(EDK2_PATH)
+endif
+	rm $(EDK2_FILE_URL)
