@@ -20,9 +20,9 @@ jobs:
 
     - name: Prerequisites
       run: |
-      sudo apt install dosfstools
-      sudo apt install mtools
-      sudo apt install rpm
+        sudo apt install dosfstools
+        sudo apt install mtools
+        sudo apt install rpm
 
     - name: Compile
       run: make
