@@ -1,0 +1,33 @@
+{
+   "description" : "UEFI Firmware, with CSM (git, x64)",
+   "tags" : [
+      "git master autobuild"
+   ],
+   "interface-types" : [
+      "uefi",
+      "bios"
+   ],
+   "mapping" : {
+      "nvram-template" : {
+         "filename" : "/usr/share/edk2.git/ovmf-x64/OVMF_VARS-with-csm.fd",
+         "format" : "raw"
+      },
+      "device" : "flash",
+      "executable" : {
+         "filename" : "/usr/share/edk2.git/ovmf-x64/OVMF_CODE-with-csm.fd",
+         "format" : "raw"
+      }
+   },
+   "features" : [
+      "acpi-s3"
+   ],
+   "targets" : [
+      {
+         "machines" : [
+            "pc-i440fx-*",
+            "pc-q35-*"
+         ],
+         "architecture" : "x86_64"
+      }
+   ]
+}
