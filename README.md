@@ -1,6 +1,6 @@
 # bare-bones-uefi
 
-An extremely lightweight UEFI SDK that uses a standard clang instalation to compile C directly into UEFI applications. It uses the data structures and header files from gnu-efi, but does not use any of the toolchain of gnu-efi. I've also included a build of `edk2` to make it easy to run the UEFI applications in qemu.
+An extremely lightweight UEFI SDK that uses a standard clang instalation to compile C directly into UEFI applications. It uses the data structures and header files from gnu-efi, but does not use any of the toolchain of gnu-efi. I've also included a build of edk2 to make it easy to run the UEFI applications in qemu.
 
 #### How to use:
  - `make` compiles `.c` files in the current directory into an efi application, it will then package that into a FAT-formatted image `out.img` ready to load onto a disk, or run in qemu.
