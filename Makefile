@@ -48,12 +48,12 @@ EDK2_FILE_URL = $(shell wget -q $(EDK2_BASE_URL) -O - | grep -Po 'edk2.git-ovmf-
 
 # First recipe in the makefile is the default, dependency: object files
 all: $(OBJ)
-	$(info $(shell pwd))
 	$(CC) $(LDFLAGS) -o $(EFI) $(OBJ)
 	make img
 
 # Gets called whenever something has a dependency for a .o (object) file
 %.o: %.c
+	$(info $(shell pwd))
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 
