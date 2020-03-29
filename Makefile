@@ -105,8 +105,10 @@ endif
 # Updates and extracts the latest version of edk2 from https://www.kraxel.org/repos/jenkins/edk2/
 update_edk2:
 ifeq (./sdk/$(EDK2_FILE_URL:%.rpm=%), $(EDK2_PATH))
-	$(error Looks like you've already got the latest version of edk2 in your sdk folder)
-endif
+	$(info Looks like you've already got the latest version of edk2 in your sdk folder)
+
+else
+	
 	wget $(EDK2_BASE_URL)$(EDK2_FILE_URL)
 ifeq (, $(shell which rpm2cpio))
 	$(error Can't find rpm2cpio, consider doing sudo apt install rpm)
@@ -118,3 +120,6 @@ ifneq (, $(EDK2_PATH))
 	rm -r $(EDK2_PATH)
 endif
 	rm $(EDK2_FILE_URL)
+
+endif
+
