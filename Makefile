@@ -1,16 +1,16 @@
-CFLAGS = -target x86_64-unknown-windows      	\
-         -ffreestanding                      	\
-         -fshort-wchar                       	\
-         -mno-red-zone                       	\
-         -Isdk/gnu-efi/inc               		\
-         -Isdk/gnu-efi/inc/x86_64        		\
-         -Isdk/gnu-efi/inc/protocol 			\
+CFLAGS = -target x86_64-unknown-windows      \
+         -ffreestanding                      \
+         -fshort-wchar                       \
+         -mno-red-zone                       \
+         -Isdk/gnu-efi/inc                   \
+         -Isdk/gnu-efi/inc/x86_64            \
+         -Isdk/gnu-efi/inc/protocol          \
          -Isdk/gnu-efi/lib
 
-LDFLAGS = -target x86_64-unknown-windows      	\
-          -nostdlib                           	\
-          -Wl,-entry:efi_main                 	\
-          -Wl,-subsystem:efi_application		\
+LDFLAGS = -target x86_64-unknown-windows      \
+          -nostdlib                           \
+          -Wl,-entry:efi_main                 \
+          -Wl,-subsystem:efi_application      \
           -fuse-ld=lld
 
 # C Compiler
@@ -42,21 +42,28 @@ EDK2_FILE_URL = $(shell wget -q $(EDK2_BASE_URL) -O - | grep -Po 'edk2.git-ovmf-
 .PHONY: clean qemu all img update_edk2
 
 
+#
+# Compiling
+#
 
+# First recipe in the makefile is the default, dependency: object files
 all: $(OBJ)
 	$(CC) $(LDFLAGS) -o $(EFI) $(OBJ)
 	make img
 
+# Gets called whenever something has a dependency for a .o (object) file
 %.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 
-qemu:
-	qemu-system-x86_64 -bios $(EDK2_BIOS) -drive file=$(BOOT_DRIVE),format=raw
 
-clean:
-	rm -f $(OBJ) $(BOOT_DRIVE) $(EFI)
 
+
+#
+# Packaging
+#
+
+# Creates a FAT formatted image file and copies in the compiled UEFI application to EFI/BOOT/BOOTX64.EFI
 img:
 ifeq (, $(shell which mkfs.vfat))
 	$(error Can't find mkfs.vfat, consider doing sudo apt install dosfstools)
@@ -70,6 +77,25 @@ endif
 	mmd -i $(BOOT_DRIVE) ::EFI/BOOT
 	mcopy -i $(BOOT_DRIVE) $(EFI) ::EFI/BOOT/BOOTX64.EFI
 
+
+
+
+
+#
+# Convenience Stuff
+#
+
+# Deletes all files created from the build process
+clean:
+	rm -f $(OBJ) $(BOOT_DRIVE) $(EFI)
+
+
+# Runs the image file in qemu
+qemu:
+	qemu-system-x86_64 -bios $(EDK2_BIOS) -drive file=$(BOOT_DRIVE),format=raw
+
+
+# Updates and extracts the latest version of edk2 from https://www.kraxel.org/repos/jenkins/edk2/
 update_edk2:
 ifeq (./sdk/$(EDK2_FILE_URL:%.rpm=%), $(EDK2_PATH))
 	$(error Looks like you've already got the latest version of edk2 in your sdk folder)
