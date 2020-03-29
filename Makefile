@@ -92,6 +92,9 @@ clean:
 
 # Runs the image file in qemu
 qemu:
+ifeq (, $(shell which qemu-system-x86_64))
+	$(error Can't find qemu-system-x86_64, consider doing sudo apt install qemu-system-x86)
+endif
 	qemu-system-x86_64 -bios $(EDK2_BIOS) -drive file=$(BOOT_DRIVE),format=raw
 
 
