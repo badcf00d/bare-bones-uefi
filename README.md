@@ -6,7 +6,7 @@ An extremely lightweight UEFI SDK that uses a standard clang instalation to comp
  - `make` compiles `.c` files in the current directory into an efi application, it will then package that into a FAT-formatted image ready to run in qemu.
  - `make qemu` runs the compiled image in qemu.
  - `make clean` deletes the files created by the build process.
- - `make update_edk2` will download and update to the latest version of edk2.git-ovmf-x64.
+ - `make update_edk2` will download and update to the latest version of edk2.
  
  #### Contents:
 ```
