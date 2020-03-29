@@ -23,6 +23,7 @@ jobs:
         sudo apt install dosfstools
         sudo apt install mtools
         sudo apt install rpm
+        echo "mtools_skip_check=1" >> ~/.mtoolsrc
 
     - name: Compile
       run: make
