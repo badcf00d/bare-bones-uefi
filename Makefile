@@ -53,7 +53,10 @@ all: $(OBJ)
 
 # Gets called whenever something has a dependency for a .o (object) file
 %.o: %.c
-	$(info $(shell pwd))
+ifeq (, $(shell find ./sdk/gnu-efi -type d -name inc))
+	$(warning Doesn't look like you've initialized the submodules, attempting now...)
+	git submodule update --init --recursive
+endif
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 
