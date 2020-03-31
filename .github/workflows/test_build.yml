@@ -25,8 +25,14 @@ jobs:
         sudo apt install rpm
         echo "mtools_skip_check=1" >> ~/.mtoolsrc
 
-    - name: Compile
+    - name: 1st Compile
       run: make
 
     - name: Update EDK2
       run: make update_edk2
+
+    - name: Clean
+      run: make clean
+
+    - name: 2nd Compile
+      run: make
