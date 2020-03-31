@@ -1,16 +1,18 @@
+SDK_PATH = sdk
+
 CFLAGS = -target x86_64-unknown-windows      \
          -ffreestanding                      \
          -fshort-wchar                       \
          -mno-red-zone                       \
-         -Isdk/gnu-efi/inc                   \
-         -Isdk/gnu-efi/inc/x86_64            \
-         -Isdk/gnu-efi/inc/protocol          \
-         -Isdk/gnu-efi/lib
+         -I$(SDK_PATH)/gnu-efi/inc           \
+         -I$(SDK_PATH)/gnu-efi/inc/x86_64    \
+         -I$(SDK_PATH)/gnu-efi/inc/protocol  \
+         -I$(SDK_PATH)/gnu-efi/lib
 
-LDFLAGS = -target x86_64-unknown-windows      \
-          -nostdlib                           \
-          -Wl,-entry:efi_main                 \
-          -Wl,-subsystem:efi_application      \
+LDFLAGS = -target x86_64-unknown-windows     \
+          -nostdlib                          \
+          -Wl,-entry:efi_main                \
+          -Wl,-subsystem:efi_application     \
           -fuse-ld=lld
 
 # C Compiler
@@ -31,7 +33,7 @@ MIN_SIZE = 51200
 IMG_SIZE = $(shell echo $$(($(EFI_SIZE) > $(MIN_SIZE) ? $(EFI_SIZE) : $(MIN_SIZE))))
 
 # Finds the path of the OVMF_CODE-pure-efi.fd file in the sdk folder
-EDK2_PATH = $(shell find ./sdk -maxdepth 1 -type d -name "edk2.git-ovmf-x64*")
+EDK2_PATH = $(shell find $(SDK_PATH)/ -maxdepth 1 -type d -name "edk2.git-ovmf-x64*")
 EDK2_BIOS = $(EDK2_PATH)/usr/share/edk2.git/ovmf-x64/OVMF_CODE-pure-efi.fd
 
 # Finds the URL to download the latest version of edk2.git-ovmf-x64
@@ -53,7 +55,7 @@ all: $(OBJ)
 
 # Gets called whenever something has a dependency for a .o (object) file
 %.o: %.c
-ifeq (, $(shell find ./sdk/gnu-efi -type d -name inc))
+ifeq (, $(shell find $(SDK_PATH)/gnu-efi -type d -name inc))
 	$(warning Doesn't look like you've initialized the submodules, attempting now...)
 	git submodule update --init --recursive
 endif
@@ -104,18 +106,19 @@ endif
 
 # Updates and extracts the latest version of edk2 from https://www.kraxel.org/repos/jenkins/edk2/
 update_edk2:
-ifeq (./sdk/$(EDK2_FILE_URL:%.rpm=%), $(EDK2_PATH))
+ifeq ($(SDK_PATH)/$(EDK2_FILE_URL:%.rpm=%), $(EDK2_PATH))
 	$(info Looks like you've already got the latest version of edk2 in your sdk folder)
-
+	$(info Current: $(SDK_PATH)/$(EDK2_FILE_URL:%.rpm=%))
+	$(info Latest: $(EDK2_PATH))
 else
-	
+
 	wget $(EDK2_BASE_URL)$(EDK2_FILE_URL)
 ifeq (, $(shell which rpm2cpio))
 	$(error Can't find rpm2cpio, consider doing sudo apt install rpm)
 endif
 	rpm2cpio $(EDK2_FILE_URL) | cpio -id
-	mkdir sdk/$(EDK2_FILE_URL:%.rpm=%)
-	mv usr sdk/$(EDK2_FILE_URL:%.rpm=%)
+	mkdir $(SDK_PATH)/$(EDK2_FILE_URL:%.rpm=%)
+	mv usr $(SDK_PATH)/$(EDK2_FILE_URL:%.rpm=%)
 ifneq (, $(EDK2_PATH))
 	rm -r $(EDK2_PATH)
 endif
