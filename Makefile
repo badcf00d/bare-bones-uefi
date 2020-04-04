@@ -1,9 +1,5 @@
 SDK_PATH = sdk
-
-CFLAGS = -target x86_64-unknown-windows      \
-         -ffreestanding                      \
-         -fshort-wchar                       \
-         -mno-red-zone                       \
+CFLAGS = -save-temps -masm=intel 			 \
          -I$(SDK_PATH)/gnu-efi/inc           \
          -I$(SDK_PATH)/gnu-efi/inc/x86_64    \
          -I$(SDK_PATH)/gnu-efi/inc/protocol  \
