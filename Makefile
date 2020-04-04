@@ -20,8 +20,14 @@ CC = clang
 
 # Finds all .c files in the current directory
 SRC = $(wildcard *.c)
-# Swaps the .c for .o to get the object output paths
+# Generate object filenames
 OBJ = $(SRC:%.c=%.o)
+# Generate clang assembly filenames (produced from save_temps)
+CASM = $(SRC:%.c=%.s)
+# Generate preprocessed c filenames (produced from save_temps)
+CPRE = $(SRC:%.c=%.i)
+# Generate llvm bytecode filenames (produced from save_temps)
+LLBC = $(SRC:%.c=%.bc)
 
 # Final output filenames
 EFI = out.efi
@@ -41,7 +47,7 @@ EDK2_BASE_URL = https://www.kraxel.org/repos/jenkins/edk2/
 EDK2_FILE_URL = $(shell wget -q $(EDK2_BASE_URL) -O - | grep -Po 'edk2.git-ovmf-x64[^"]*' | head -1)
 
 
-.PHONY: clean qemu all img update_edk2
+.PHONY: clean qemu all img update_edk2 save_temps
 
 
 #
@@ -93,7 +99,7 @@ endif
 
 # Deletes all files created from the build process
 clean:
-	rm -f $(OBJ) $(BOOT_DRIVE) $(EFI)
+	rm -f $(OBJ) $(BOOT_DRIVE) $(EFI) $(CASM) $(CPRE) $(LLBC)
 
 
 # Runs the image file in qemu
@@ -126,3 +132,7 @@ endif
 
 endif
 
+
+# At time of writing there's a bug in clang that prevents "-save-temps -masm=intel" from working
+save_temps: CFLAGS += -save-temps 
+save_temps: all
