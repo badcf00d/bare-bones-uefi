@@ -20,8 +20,14 @@ CC = clang
 
 # Finds all .c files in the current directory
 SRC = $(wildcard *.c)
+SRC += $(wildcard $(SDK_PATH)/gnu-efi/lib/*.c)
+SRC += $(wildcard $(SDK_PATH)/gnu-efi/lib/runtime/*.c)
+SRC += $(wildcard $(SDK_PATH)/gnu-efi/lib/x86_64/*.c)
+# Finds gnu-efi asm files
+ASM = $(wildcard $(SDK_PATH)/gnu-efi/lib/x86_64/*.S)
 # Generate object filenames
 OBJ = $(SRC:%.c=%.o)
+OBJ += $(ASM:%.S=%.o)
 # Generate clang assembly filenames (produced from save_temps)
 CASM = $(SRC:%.c=%.s)
 # Generate preprocessed c filenames (produced from save_temps)
@@ -47,19 +53,19 @@ EDK2_BASE_URL = https://www.kraxel.org/repos/jenkins/edk2/
 EDK2_FILE_URL = $(shell wget -q $(EDK2_BASE_URL) -O - | grep -Po 'edk2.git-ovmf-x64[^"]*' | head -1)
 
 
-.PHONY: clean qemu all img update_edk2 save_temps
+.PHONY: clean clean_all qemu all img update_edk2 save_temps
 
 
 #
 # Compiling
 #
 
-# First recipe in the makefile is the default, dependency: object files
+# First recipe in the makefile is the default, dependency: all the object files
 all: $(OBJ)
-	$(CC) $(LDFLAGS) -o $(EFI) $(OBJ)
-	make img
+	$(CC) $(LDFLAGS) -o $(EFI) $(OBJ) 
+	$(MAKE) img
 
-# Gets called whenever something has a dependency for a .o (object) file
+# Gets called whenever something has a dependency for a .o (object) file, it then iterates over all .c files
 %.o: %.c
 ifeq (, $(shell find $(SDK_PATH)/gnu-efi -type d -name inc))
 	$(warning Doesn't look like you've initialized the submodules, attempting now...)
@@ -67,7 +73,13 @@ ifeq (, $(shell find $(SDK_PATH)/gnu-efi -type d -name inc))
 endif
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-
+# Gets called whenever something has a dependency for a .o (object) file, it then iterates over all .S files
+%.o: %.S
+ifeq (, $(shell find $(SDK_PATH)/gnu-efi -type d -name inc))
+	$(warning Doesn't look like you've initialized the submodules, attempting now...)
+	git submodule update --init --recursive
+endif
+	$(CC) $(CFLAGS) -c -o $@ $<
 
 
 
@@ -83,7 +95,7 @@ endif
 ifeq (, $(shell which mcopy))
 	$(error Can't find mcopy, consider doing sudo apt install mtools)
 endif
-	dd if=/dev/zero of=$(BOOT_DRIVE) bs=$(IMG_SIZE) count=1
+	dd if=/dev/zero of=$(BOOT_DRIVE) bs=$(IMG_SIZE) count=2
 	mkfs.vfat $(BOOT_DRIVE)
 	mmd -i $(BOOT_DRIVE) ::EFI
 	mmd -i $(BOOT_DRIVE) ::EFI/BOOT
@@ -99,7 +111,7 @@ endif
 
 # Deletes all files created from the build process
 clean:
-	rm -f $(OBJ) $(BOOT_DRIVE) $(EFI) $(CASM) $(CPRE) $(LLBC)
+	rm -f $(OBJ) $(BOOT_DRIVE) $(EFI) $(notdir $(CASM)) $(notdir $(CPRE)) $(notdir $(LLBC)) $(notdir $(ASM))
 
 
 # Runs the image file in qemu
