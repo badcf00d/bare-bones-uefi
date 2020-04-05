@@ -20,12 +20,13 @@ jobs:
 
     - name: Prerequisites
       run: |
-        sudo apt install dosfstools
-        sudo apt install mtools
-        sudo apt install rpm
+        sudo apt-get install dosfstools
+        sudo apt-get install mtools
+        sudo apt-get install rpm
         echo "mtools_skip_check=1" >> ~/.mtoolsrc
+        git submodules update --init --recursive
 
-    - name: 1st Compile
+    - name: Normal Compile
       run: make
 
     - name: Update EDK2
@@ -34,5 +35,5 @@ jobs:
     - name: Clean
       run: make clean
 
-    - name: 2nd Compile
-      run: make
+    - name: Save-Temps Compile
+      run: make save_temps
